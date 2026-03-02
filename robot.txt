@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /assets/
+Disallow: /thank-you/
+Disallow: /admin/
+Disallow: /includes/
+
+Sitemap: https://localreach.in/sitemap.xml

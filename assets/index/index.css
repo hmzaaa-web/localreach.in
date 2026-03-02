@@ -546,6 +546,7 @@
                 width: 50px;
                 border-radius: 5px 5px 0 0;
                 position: relative;
+                transition: height 1s ease-out;
             }
 
             .bar-before {

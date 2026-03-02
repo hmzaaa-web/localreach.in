@@ -218,3 +218,44 @@
             document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
             document.addEventListener('mouseenter', () => cursor.style.opacity = '0.5');
         });
+
+        // ===== BAR GRAPH ANIMATION =====
+        function initBarAnimation() {
+            const bars = document.querySelectorAll('.bar');
+            if (!bars.length) return;
+
+            // 1. Initially set all bar heights to 0
+            bars.forEach(bar => {
+                bar.style.height = '0';
+            });
+
+            // 2. Create an observer for the graph container
+            const barObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Animate each bar to its target height
+                        const targetBars = entry.target.querySelectorAll('.bar');
+                        targetBars.forEach(bar => {
+                            if (bar.classList.contains('bar-before')) {
+                                bar.style.height = '120px';   // before value
+                            } else if (bar.classList.contains('bar-after')) {
+                                bar.style.height = '200px';   // after value
+                            }
+                        });
+                        // Stop observing after animation triggers
+                        barObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 }); // trigger when 50% visible
+
+            const graphContainer = document.querySelector('.results-graph');
+            if (graphContainer) {
+                barObserver.observe(graphContainer);
+            }
+        }
+
+        // Call it inside DOMContentLoaded (after your existing code)
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... your existing code (stats animation, active links, etc.) ...
+            initBarAnimation(); // <-- add this line
+        });

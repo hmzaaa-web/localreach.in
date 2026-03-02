@@ -391,3 +391,68 @@
             document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
             document.addEventListener('mouseenter', () => cursor.style.opacity = '0.5');
         });
+
+        //Contact form submission to Google Sheets via Google Apps Script
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('contactForm');
+        if (!form) return;
+
+        // Create message container
+        const formMessage = document.createElement('div');
+        formMessage.id = 'formMessage';
+        formMessage.className = 'form-message';
+        form.appendChild(formMessage);
+
+        // Your Google Apps Script Web App URL
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyIfth9F64mSNewbm-HA4al-kl58OdiyZIiyQa8PHmsiN1wE5flj2ScJHl_Pqegs8EN/exec';
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validate required fields (browser handles most, but we can double-check)
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
+            submitBtn.disabled = true;
+
+            // Prepare form data (FormData automatically includes all fields)
+            const formData = new FormData(form);
+
+            // Send to Google Apps Script
+            fetch(scriptURL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' // Required for cross-origin requests
+            })
+            .then(response => {
+                // With 'no-cors', we can't read response, so assume success
+                showMessage('Thank you! Your message has been sent. We\'ll get back to you within 24 hours.', 'success');
+                form.reset();
+            })
+            .catch(error => {
+                showMessage('Oops! Something went wrong. Please try again later.', 'error');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        function showMessage(text, type) {
+            formMessage.textContent = text;
+            formMessage.className = 'form-message ' + type;
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                formMessage.textContent = '';
+                formMessage.className = 'form-message';
+            }, 5000);
+        }
+    });
