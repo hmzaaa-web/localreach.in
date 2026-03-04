@@ -1181,3 +1181,13 @@
             @keyframes spin {
             to { transform: rotate(360deg); }
             }
+
+            .whatsapp-number a{
+            color:#4CAF50;
+            font-weight:600;
+            text-decoration:none;
+            }
+
+            .whatsapp-number a:hover{
+                text-decoration:underline;
+            }

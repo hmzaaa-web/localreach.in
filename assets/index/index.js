@@ -259,3 +259,197 @@
             // ... your existing code (stats animation, active links, etc.) ...
             initBarAnimation(); // <-- add this line
         });
+
+        // ===== TESTIMONIALS CAROUSEL (AUTO + MANUAL, HOVER PAUSE) =====
+        document.addEventListener('DOMContentLoaded', function() {
+        const testimonials = [
+            {
+                avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+                name: 'Ramesh Gupta',
+                business: 'Gupta Electronics, Bareilly',
+                rating: 5,
+                text: 'LocalReach transformed our online presence! We used to rely on walk-ins, but now we get calls every day from customers who found us on Google. The team is honest and delivers exactly what they promise.'
+            },
+            {
+                avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+                name: 'Priya Mehra',
+                business: 'Mehra Boutique, Lucknow',
+                rating: 5,
+                text: 'I was skeptical about digital marketing, but their local SEO strategy doubled our footfall in just 3 months. They really understand small businesses.'
+            },
+            {
+                avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
+                name: 'Amit Sharma',
+                business: 'Sharma Sweets, Delhi',
+                rating: 5,
+                text: 'The WhatsApp automation saved us hours of manual work. Our repeat customers love the quick responses. Highly recommended!'
+            },
+            {
+                avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
+                name: 'Sunita Devi',
+                business: 'Sunita’s Salon, Agra',
+                rating: 5,
+                text: 'Their social media management brought in so many new clients. The content is creative and connects with local audience perfectly.'
+            },
+            {
+                avatar: 'https://randomuser.me/api/portraits/men/52.jpg',
+                name: 'Vikram Singh',
+                business: 'Vikram Hardware, Meerut',
+                rating: 5,
+                text: 'We finally have a website that works and brings leads! The team guided us through every step and the after-sales support is amazing.'
+            },
+            {
+                avatar: 'https://randomuser.me/api/portraits/women/22.jpg',
+                name: 'Neha Kapoor',
+                business: 'Kapoor’s Kitchen, Noida',
+                rating: 5,
+                text: 'The Google Ads campaign they ran for us gave 5x ROI in the first month itself. Absolutely thrilled with the results!'
+            }
+        ];
+
+        const wrapper = document.getElementById('testimonialsWrapper');
+        const track = document.getElementById('testimonialsTrack');
+        if (!wrapper || !track) return;
+
+        // Build cards
+        track.innerHTML = '';
+        testimonials.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'testimonial-card';
+
+            const avatarHtml = t.avatar 
+                ? `<img src="${t.avatar}" alt="${t.name}" loading="lazy">`
+                : `<i class="fas fa-user-circle"></i>`;
+
+            const stars = '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating);
+
+            card.innerHTML = `
+                <div class="testimonial-quote-icon">“</div>
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">${avatarHtml}</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">${t.name}</div>
+                        <div class="testimonial-business">${t.business}</div>
+                    </div>
+                    <div class="testimonial-rating">${stars}</div>
+                </div>
+                <div class="testimonial-text">${t.text}</div>
+            `;
+            track.appendChild(card);
+        });
+
+        // Clone cards once to create seamless infinite scroll
+        const cards = Array.from(track.children);
+        cards.forEach(card => {
+            const clone = card.cloneNode(true);
+            track.appendChild(clone);
+        });
+
+        // ===== AUTO-SCROLL (RIGHT TO LEFT) & MANUAL CONTROL =====
+        let currentPosition = 0;
+        const cardWidth = 380 + 30; // width + gap
+        const totalWidth = track.scrollWidth / 2; // half because we duplicated
+        let autoScrollInterval = null;
+        let isDragging = false;
+        let startX = 0;
+        let startPosition = 0;
+
+        // Start auto-scroll (right to left)
+        function startAutoScroll() {
+            if (autoScrollInterval) return;
+            autoScrollInterval = setInterval(() => {
+                if (!isDragging && !wrapper.matches(':hover')) {
+                    currentPosition -= 1; // move left
+                    // Infinite loop: reset when halfway through
+                    if (Math.abs(currentPosition) >= totalWidth) {
+                        currentPosition = 0;
+                    }
+                    track.style.transform = `translateX(${currentPosition}px)`;
+                }
+            }, 16); // ~60fps
+        }
+
+        // Stop auto-scroll
+        function stopAutoScroll() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        }
+
+        // Dragging handlers
+        function onDragStart(e) {
+            e.preventDefault();
+            isDragging = true;
+            wrapper.classList.add('dragging');
+            stopAutoScroll();
+            startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            startPosition = currentPosition;
+        }
+
+        function onDragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            const delta = currentX - startX;
+            currentPosition = startPosition + delta;
+            track.style.transform = `translateX(${currentPosition}px)`;
+        }
+
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            wrapper.classList.remove('dragging');
+            // Resume auto-scroll if not hovering
+            if (!wrapper.matches(':hover')) {
+                startAutoScroll();
+            }
+        }
+
+        // Hover handlers
+        wrapper.addEventListener('mouseenter', () => {
+            stopAutoScroll();
+        });
+
+        wrapper.addEventListener('mouseleave', () => {
+            if (!isDragging) {
+                startAutoScroll();
+            }
+        });
+
+        // Mouse wheel (optional, but keeps manual control)
+        wrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            stopAutoScroll();
+            currentPosition -= e.deltaY * 0.5;
+            // Clamp to prevent going out of bounds
+            const maxScroll = 0;
+            const minScroll = -totalWidth * 2 + wrapper.offsetWidth;
+            if (currentPosition > maxScroll) currentPosition = maxScroll;
+            if (currentPosition < minScroll) currentPosition = minScroll;
+            track.style.transform = `translateX(${currentPosition}px)`;
+            // Resume auto-scroll after a tiny delay (if not hovering)
+            if (!wrapper.matches(':hover')) {
+                startAutoScroll();
+            }
+        }, { passive: false });
+
+        // Drag events
+        wrapper.addEventListener('mousedown', onDragStart);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        wrapper.addEventListener('touchstart', onDragStart, { passive: false });
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('touchend', onDragEnd);
+
+        // Prevent default drag on images
+        wrapper.addEventListener('dragstart', (e) => e.preventDefault());
+
+        // Start auto-scroll initially
+        startAutoScroll();
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (autoScrollInterval) clearInterval(autoScrollInterval);
+        });
+    });
